@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BISHAL'S EDIT</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f7f4;
+        }
+        h1 {
+            margin-top: 15px;
+            font-size: 2.5em;
+            background: linear-gradient(to right, #fff, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+        #editor {
+            margin-top: 20px;
+            width: 45%;
+            max-width: 8000px;
+            text-align: center;
+        }
+        #canvas {
+            border: 1px solid #ccc;
+            margin-top: 10px;
+        }
+        #controls {
+            margin-top: 10px;
+        }
+        button {
+            margin: 5px;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        label {
+            cursor: pointer;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        .slider {
+            margin: 10px 0;
+            width: 50%;
+        }
+    </style>
+</head>
+<body>
+    <h1>BISHAL'S EDIT</h1>
+
+    <div id="editor">
+        <input type="file" id="upload" accept="image/*">
+        <label for="upload">Upload Image</label>
+
+        <canvas id="canvas" width="260" height="350"></canvas>
+
+        <div id="controls">
+            <button onclick="rotate()">Rotate</button>
+            <button onclick="crop()">Crop</button>
+            <button onclick="applyFilter('grayscale')">Grayscale</button>
+            <button onclick="applyFilter('sepia')">Sepia</button>
+            <button onclick="applyFilter('bright')">Bright Filter</button>
+            <button onclick="applyFilter('vibrant')">Vibrant Filter</button>
+            <button onclick="applyFilter('temp')">Temperature Filter</button>
+            <button onclick="reset()">Reset</button>
+        </div>
+
+        <div>
+            <label>Brightness:</label>
+            <input type="range" id="brightness" class="slider" min="-100" max="100" value="0" oninput="adjustImage()">
+        </div>
+        <div>
+            <label>Contrast:</label>
+            <input type="range" id="contrast" class="slider" min="-100" max="100" value="0" oninput="adjustImage()">
+        </div>
+        <div>
+            <label>Vibrance:</label>
+            <input type="range" id="vibrance" class="slider" min="-100" max="100" value="0" oninput="adjustImage()">
+        </div>
+        <div>
+            <label>Highlights:</label>
+            <input type="range" id="highlights" class="slider" min="-100" max="100" value="0" oninput="adjustImage()">
+        </div>
+        <div>
+            <label>Shadows:</label>
+            <input type="range" id="shadows" class="slider" min="-100" max="100" value="0" oninput="adjustImage()">
+        </div>
+    </div>
+
+    <script>
+        let canvas = document.getElementById('canvas');
+        let ctx = canvas.getContext('2d');
+        let img = new Image();
+        let angle = 0;
+
+        document.getElementById('upload').addEventListener('change', function(e) {
+            let reader = new FileReader();
+            reader.onload = function(event) {
+                img.src = event.target.result;
+                img.onload = function() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                }
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+        function rotate() {
+            angle = (angle + 90) % 360;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate(angle * Math.PI / 180);
+            ctx.drawImage(img, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+            ctx.restore();
+        }
+
+        function applyFilter(filter) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.filter = filter === 'bright' ? 'brightness(1.2)' :
+                         filter === 'vibrant' ? 'saturate(1.5)' :
+                         filter === 'temp' ? 'hue-rotate(15deg)' :
+                         filter === 'grayscale' ? 'grayscale(1)' :
+                         filter === 'sepia' ? 'sepia(1)' : 'none';
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            ctx.restore();
+        }
+
+        function crop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 50, 50, canvas.width - 100, canvas.height - 100); // Crops the image
+        }
+
+        function reset() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.filter = 'none';
+            angle = 0;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resetSliders();
+        }
+
+        function adjustImage() {
+            let brightness = document.getElementById('brightness').value;
+            let contrast = document.getElementById('contrast').value;
+            let vibrance = document.getElementById('vibrance').value;
+            let highlights = document.getElementById('highlights').value;
+            let shadows = document.getElementById('shadows').value;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.filter = `brightness(${parseInt(brightness) + 100}%) contrast(${parseInt(contrast) + 100}%) saturate(${parseInt(vibrance) + 100}%)`;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        }
+
+        function resetSliders() {
+            document.getElementById('brightness').value = 0;
+            document.getElementById('contrast').value = 0;
+            document.getElementById('vibrance').value = 0;
+            document.getElementById('highlights').value = 0;
+            document.getElementById('shadows').value = 0;
+        }
+    </script>
+</body>
+</html>
+<div>
+    <label>Hue:</label>
+    <input type="range" id="hue" class="slider" min="0" max="360" value="0" oninput="adjustImage()">
+</div>
+<div>
+    <label>Saturation:</label>
+    <input type="range" id="hsl-saturation" class="slider" min="0" max="200" value="100" oninput="adjustImage()">
+</div>
+<div>
+    <label>Lightness:</label>
+    <input type="range" id="lightness" class="slider" min="0" max="200" value="100" oninput="adjustImage()">
+</div>
+<label for="upload">DOWNLOAD IMAGE</label>
